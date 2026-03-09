@@ -1,82 +1,67 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Carga Rápida Fútbol</title>
+    <title>Cargar Datos</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css">
 </head>
 <body>
-    <h1>Cargar Jugadores</h1>
+    <h1>Panel de Control</h1>
 
-    <div style="background: #222; padding: 15px; border-radius: 10px;">
-        <input type="text" id="nuevoNombre" placeholder="Nombre del jugador...">
-        <button onclick="agregarJugador()">+ Agregar a la lista</button>
-    </div>
+    <section>
+        <input type="text" id="nombreInput" placeholder="Nombre del jugador...">
+        <button onclick="agregar()">+ Registrar Jugador</button>
+    </section>
 
     <hr>
 
-    <h3>Lista de Jugadores</h3>
-    <div id="lista"></div>
+    <h3>Cargar resultados del día</h3>
+    <div id="listaContenedor"></div>
 
     <br>
-    <button onclick="borrarTodo()" style="background: #a00;">Borrar toda la tabla</button>
-    <br>
-    <a href="index.html">⬅ Volver a la Tabla General</a>
+    <button onclick="window.location.href='index.html'">Ver Tabla de Posiciones</button>
+    <button onclick="borrarTodo()" style="background:#a00; color:white;">Reiniciar Torneo</button>
 
     <script>
-        // Función para agregar un jugador nuevo
-        function agregarJugador() {
-            const nombre = document.getElementById('nuevoNombre').value;
-            if (!nombre) return;
-
-            let jugadores = JSON.parse(localStorage.getItem('tablaFutbol')) || [];
-            
-            // Creamos al jugador con todo en 0
-            jugadores.push({ nombre: nombre, puntos: 0, pj: 0, goles: 0 });
-            
-            localStorage.setItem('tablaFutbol', JSON.stringify(jugadores));
-            document.getElementById('nuevoNombre').value = "";
-            renderizar();
+        function agregar() {
+            const nombre = document.getElementById('nombreInput').value;
+            if(!nombre) return;
+            let datos = JSON.parse(localStorage.getItem('futbolDB')) || [];
+            datos.push({ nombre: nombre, puntos: 0, pj: 0, goles: 0 });
+            localStorage.setItem('futbolDB', JSON.stringify(datos));
+            document.getElementById('nombreInput').value = "";
+            dibujar();
         }
 
-        // Función para sumar puntos/goles
-        function sumar(index, tipo) {
-            let jugadores = JSON.parse(localStorage.getItem('tablaFutbol'));
-            
-            if (tipo === 'puntos') jugadores[index].puntos += 1;
-            if (tipo === 'goles') jugadores[index].goles += 1;
-            if (tipo === 'pj') jugadores[index].pj += 1;
-
-            localStorage.setItem('tablaFutbol', JSON.stringify(jugadores));
-            renderizar();
-        }
-
-        // Función para mostrar la lista en pantalla
-        function renderizar() {
-            const listaDiv = document.getElementById('lista');
-            const jugadores = JSON.parse(localStorage.getItem('tablaFutbol')) || [];
-            listaDiv.innerHTML = "";
-
-            jugadores.forEach((j, index) => {
-                listaDiv.innerHTML += `
-                    <div style="border-bottom: 1px solid #444; padding: 10px 0;">
-                        <strong>${j.nombre}</strong> <br>
-                        Puntos: ${j.puntos} <button onclick="sumar(${index}, 'puntos')">+</button> | 
-                        Goles: ${j.goles} <button onclick="sumar(${index}, 'goles')">+</button> | 
-                        PJ: ${j.pj} <button onclick="sumar(${index}, 'pj')">+</button>
-                    </div>
-                `;
-            });
+        function modificar(index, campo, valor) {
+            let datos = JSON.parse(localStorage.getItem('futbolDB'));
+            datos[index][campo] += valor;
+            localStorage.setItem('futbolDB', JSON.stringify(datos));
+            dibujar();
         }
 
         function borrarTodo() {
-            if(confirm("¿Seguro querés borrar a todos?")) {
-                localStorage.removeItem('tablaFutbol');
-                renderizar();
+            if(confirm("¿Borrar todos los jugadores y puntos?")) {
+                localStorage.removeItem('futbolDB');
+                dibujar();
             }
         }
 
-        renderizar(); // Carga la lista al abrir
+        function dibujar() {
+            const cont = document.getElementById('listaContenedor');
+            const datos = JSON.parse(localStorage.getItem('futbolDB')) || [];
+            cont.innerHTML = "";
+            datos.forEach((j, i) => {
+                cont.innerHTML += `
+                <div style="border: 1px solid #444; padding: 10px; margin-bottom: 5px; border-radius: 5px;">
+                    <strong>${j.nombre}</strong><br>
+                    Pts: ${j.puntos} <button onclick="modificar(${i},'puntos',3)">+3</button> <button onclick="modificar(${i},'puntos',1)">+1</button> | 
+                    Goles: ${j.goles} <button onclick="modificar(${i},'goles',1)">+</button> | 
+                    PJ: ${j.pj} <button onclick="modificar(${i},'pj',1)">+</button>
+                </div>`;
+            });
+        }
+        dibujar();
     </script>
 </body>
 </html>
