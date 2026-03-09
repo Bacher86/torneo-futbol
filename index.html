@@ -1,21 +1,23 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Posiciones</title>
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tabla Posiciones</title>
     <style>
-        body { font-family: sans-serif; padding: 10px; background: #fff; color: #000; font-size: 14px; }
-        h1 { text-align: center; font-size: 18px; margin-bottom: 10px; }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { border: 1px solid #ddd; padding: 6px 4px; text-align: center; }
-        th { background: #eee; font-size: 12px; }
-        td:first-child { text-align: left; font-weight: bold; width: 40%; }
-        tr:nth-child(even) { background: #f9f9f9; }
-        b { color: #d32f2f; } /* Puntos en rojo oscuro para resaltar */
+        body { font-family: sans-serif; background: white; color: black; padding: 10px; }
+        h2 { text-align: center; font-size: 1.2rem; border-bottom: 2px solid #000; padding-bottom: 8px; }
+        table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        th, td { border: 1px solid #ddd; padding: 8px 4px; text-align: center; }
+        th { background: #f4f4f4; font-size: 11px; text-transform: uppercase; }
+        td:first-child { text-align: left; font-weight: bold; width: 45%; padding-left: 8px; }
+        tr:nth-child(even) { background: #fafafa; }
+        tr:first-child { background: #fffde7; } /* Resalte al puntero */
+        .pts { font-weight: bold; font-size: 15px; }
     </style>
 </head>
 <body>
-    <h1>🏆 POSICIONES</h1>
+    <h2>🏆 POSICIONES</h2>
     <table>
         <thead>
             <tr>
@@ -25,16 +27,19 @@
                 <th>GOL</th>
             </tr>
         </thead>
-        <tbody id="cuerpoTabla"></tbody>
+        <tbody id="t"></tbody>
     </table>
+
     <script>
-        const datos = JSON.parse(localStorage.getItem('futbolDB')) || [];
-        datos.sort((a, b) => b.puntos - a.puntos || b.goles - a.goles || a.pj - b.pj);
-        const tabla = document.getElementById('cuerpoTabla');
-        datos.forEach(j => {
-            tabla.innerHTML += `<tr>
+        const d = JSON.parse(localStorage.getItem('futbolDB')) || [];
+        // Orden: Puntos > Goles > Menos Partidos
+        d.sort((a, b) => b.puntos - a.puntos || b.goles - a.goles || a.pj - b.pj);
+        const cuerpo = document.getElementById('t');
+        if(!d.length) cuerpo.innerHTML = "<tr><td colspan='4'>Sin datos</td></tr>";
+        d.forEach(j => {
+            cuerpo.innerHTML += `<tr>
                 <td>${j.nombre}</td>
-                <td><b>${j.puntos}</b></td>
+                <td class="pts">${j.puntos}</td>
                 <td>${j.pj}</td>
                 <td>${j.goles}</td>
             </tr>`;
