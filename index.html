@@ -8,11 +8,10 @@
         body { font-family: sans-serif; background: white; color: black; padding: 10px; }
         h2 { text-align: center; font-size: 1.2rem; border-bottom: 2px solid #000; padding-bottom: 8px; }
         table { width: 100%; border-collapse: collapse; font-size: 14px; }
-        th, td { border: 1px solid #ddd; padding: 8px 4px; text-align: center; }
-        th { background: #f4f4f4; font-size: 11px; text-transform: uppercase; }
+        th, td { border: 1px solid #ddd; padding: 10px 4px; text-align: center; }
+        th { background: #f4f4f4; font-size: 11px; }
         td:first-child { text-align: left; font-weight: bold; width: 45%; padding-left: 8px; }
         tr:nth-child(even) { background: #fafafa; }
-        tr:first-child { background: #fffde7; } /* Resalte al puntero */
         .pts { font-weight: bold; font-size: 15px; }
     </style>
 </head>
@@ -29,10 +28,8 @@
         </thead>
         <tbody id="t"></tbody>
     </table>
-
     <script>
         const d = JSON.parse(localStorage.getItem('futbolDB')) || [];
-        // Orden: Puntos > Goles > Menos Partidos
         d.sort((a, b) => b.puntos - a.puntos || b.goles - a.goles || a.pj - b.pj);
         const cuerpo = document.getElementById('t');
         if(!d.length) cuerpo.innerHTML = "<tr><td colspan='4'>Sin datos</td></tr>";
