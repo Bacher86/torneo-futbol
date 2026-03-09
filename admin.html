@@ -1,26 +1,41 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Cargar Datos</title>
+    <title>Admin Torneo</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css">
+    <style>
+        .jugador-card { background: #222; border: 1px solid #444; padding: 15px; margin-bottom: 10px; border-radius: 8px; display: flex; align-items: center; justify-content: space-between; }
+        .controles { display: flex; gap: 10px; align-items: center; }
+        input[type="checkbox"] { transform: scale(1.5); margin-right: 10px; }
+        .marcado { border-color: #00ff00; background: #1a2e1a; }
+    </style>
 </head>
 <body>
-    <h1>Panel de Control</h1>
+    <h1>⚙️ Administrar Partido</h1>
 
-    <section>
-        <input type="text" id="nombreInput" placeholder="Nombre del jugador...">
-        <button onclick="agregar()">+ Registrar Jugador</button>
-    </section>
+    <details>
+        <summary>➕ Agregar Jugador Nuevo</summary>
+        <input type="text" id="nombreInput" placeholder="Nombre y Apellido">
+        <button onclick="agregar()">Registrar</button>
+    </details>
 
     <hr>
 
-    <h3>Cargar resultados del día</h3>
-    <div id="listaContenedor"></div>
+    <h3>Paso 1: ¿Quiénes jugaron hoy?</h3>
+    <div id="listaContenedor">Cargando jugadores...</div>
+
+    <div id="seccionCarga" style="display:none; background: #333; padding: 20px; position: sticky; bottom: 0; border-radius: 10px;">
+        <h3>Paso 2: Resultados de los seleccionados</h3>
+        <p>A los marcados se les sumará +1 Partido Jugado (PJ).</p>
+        <button onclick="cargarResultado(3)" style="background: #28a745;">Ganaron (+3 pts)</button>
+        <button onclick="cargarResultado(1)" style="background: #ffc107; color: black;">Empataron (+1 pt)</button>
+        <button onclick="cargarResultado(0)" style="background: #6c757d;">Perdieron (0 pts)</button>
+    </div>
 
     <br>
     <button onclick="window.location.href='index.html'">Ver Tabla de Posiciones</button>
-    <button onclick="borrarTodo()" style="background:#a00; color:white;">Reiniciar Torneo</button>
+    <button onclick="borrarDB()" style="background: #a00;">Resetear Todo</button>
 
     <script>
         function agregar() {
@@ -33,34 +48,53 @@
             dibujar();
         }
 
-        function modificar(index, campo, valor) {
+        function sumarGol(index) {
             let datos = JSON.parse(localStorage.getItem('futbolDB'));
-            datos[index][campo] += valor;
+            datos[index].goles += 1;
             localStorage.setItem('futbolDB', JSON.stringify(datos));
             dibujar();
         }
 
-        function borrarTodo() {
-            if(confirm("¿Borrar todos los jugadores y puntos?")) {
-                localStorage.removeItem('futbolDB');
-                dibujar();
-            }
+        function cargarResultado(puntosAFavor) {
+            let datos = JSON.parse(localStorage.getItem('futbolDB'));
+            const marcados = document.querySelectorAll('.jugador-check:checked');
+            
+            if(marcados.length === 0) return alert("Primero marcá quiénes jugaron");
+
+            marcados.forEach(check => {
+                const idx = check.value;
+                datos[idx].puntos += puntosAFavor;
+                datos[idx].pj += 1;
+            });
+
+            localStorage.setItem('futbolDB', JSON.stringify(datos));
+            alert("¡Resultados cargados!");
+            location.reload(); 
         }
 
         function dibujar() {
             const cont = document.getElementById('listaContenedor');
             const datos = JSON.parse(localStorage.getItem('futbolDB')) || [];
+            if(datos.length > 0) document.getElementById('seccionCarga').style.display = 'block';
+            
             cont.innerHTML = "";
             datos.forEach((j, i) => {
                 cont.innerHTML += `
-                <div style="border: 1px solid #444; padding: 10px; margin-bottom: 5px; border-radius: 5px;">
-                    <strong>${j.nombre}</strong><br>
-                    Pts: ${j.puntos} <button onclick="modificar(${i},'puntos',3)">+3</button> <button onclick="modificar(${i},'puntos',1)">+1</button> | 
-                    Goles: ${j.goles} <button onclick="modificar(${i},'goles',1)">+</button> | 
-                    PJ: ${j.pj} <button onclick="modificar(${i},'pj',1)">+</button>
+                <div class="jugador-card" id="card-${i}">
+                    <label style="display:flex; align-items:center; cursor:pointer;">
+                        <input type="checkbox" class="jugador-check" value="${i}" onchange="document.getElementById('card-${i}').classList.toggle('marcado')">
+                        <strong>${j.nombre}</strong>
+                    </label>
+                    <div class="controles">
+                        <span>⚽ ${j.goles}</span>
+                        <button onclick="sumarGol(${i})">+</button>
+                    </div>
                 </div>`;
             });
         }
+
+        function borrarDB() { if(confirm("¿Borrar todo?")) { localStorage.clear(); location.reload(); } }
+        
         dibujar();
     </script>
 </body>
