@@ -1,20 +1,67 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Carga de Datos</title>
+    <title>Carga de Partido</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css">
 </head>
 <body>
-    <h1>Cargar Jugador</h1>
-    <form id="futbolForm">
-        <input type="text" id="nombre" placeholder="Nombre y Apellido" required>
-        <input type="number" id="puntos" placeholder="Puntos" required>
-        <input type="number" id="pj" placeholder="Partidos Jugados" required>
-        <input type="number" id="goles" placeholder="Goles" required>
-        <button type="submit">Guardar Jugador</button>
-    </form>
-    <a href="index.html">Ver Tabla de Posiciones</a>
+    <h1>Pasar Asistencia y Goles</h1>
+    <div id="listaJugadores">Cargando jugadores...</div>
+    <br>
+    <button onclick="enviarDatos()">Guardar Resultados del Día</button>
+    <a href="index.html">Ver Tabla General</a>
 
-    <script src="script.js"></script>
+    <script>
+        const URL_SCRIPT = "PEGA_AQUÍ_TU_URL_DE_GOOGLE_APPS_SCRIPT";
+
+        // 1. Cargar jugadores al abrir la página
+        fetch(URL_SCRIPT)
+            .then(res => res.json())
+            .then(data => {
+                const div = document.getElementById('listaJugadores');
+                div.innerHTML = "";
+                data.forEach(j => {
+                    div.innerHTML += `
+                        <div style="border-bottom: 1px solid #ccc; padding: 10px;">
+                            <label>
+                                <input type="checkbox" class="jugador-check" data-nombre="${j.nombre}"> 
+                                <strong>${j.nombre}</strong>
+                            </label>
+                            <input type="number" class="goles-input" placeholder="Goles" style="width: 80px; display: inline; margin-left: 20px;">
+                            <select class="puntos-select" style="width: 100px; display: inline;">
+                                <option value="3">Ganó (3)</option>
+                                <option value="1">Empató (1)</option>
+                                <option value="0">Perdió (0)</option>
+                            </select>
+                        </div>
+                    `;
+                });
+            });
+
+        // 2. Enviar solo los marcados
+        function enviarDatos() {
+            const checks = document.querySelectorAll('.jugador-check:checked');
+            const resultados = [];
+
+            checks.forEach(check => {
+                const padre = check.parentElement.parentElement;
+                resultados.push({
+                    nombre: check.getAttribute('data-nombre'),
+                    goles: padre.querySelector('.goles-input').value || 0,
+                    puntos: padre.querySelector('.puntos-select').value
+                });
+            });
+
+            if(resultados.length === 0) return alert("Marcá quiénes jugaron");
+
+            fetch(URL_SCRIPT, {
+                method: "POST",
+                body: JSON.stringify(resultados)
+            }).then(() => {
+                alert("¡Datos actualizados en el Excel!");
+                location.reload();
+            });
+        }
+    </script>
 </body>
 </html>
