@@ -1,67 +1,101 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Carga de Partido</title>
+    <title>Administración de Fútbol</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css">
+    <style>
+        .jugador-row { border-bottom: 1px solid #444; padding: 10px 0; display: flex; align-items: center; gap: 15px; }
+        .nuevo-jugador-seccion { background: #222; padding: 20px; border-radius: 8px; margin-bottom: 30px; }
+    </style>
 </head>
 <body>
-    <h1>Pasar Asistencia y Goles</h1>
+    <h1>Panel de Control</h1>
+
+    <div class="nuevo-jugador-seccion">
+        <h3>+ Agregar Nuevo Jugador</h3>
+        <input type="text" id="nuevoNombre" placeholder="Nombre y Apellido">
+        <button onclick="crearJugador()">Registrar en la Base de Datos</button>
+    </div>
+
+    <hr>
+
+    <h3>Pasar Asistencia y Resultados</h3>
     <div id="listaJugadores">Cargando jugadores...</div>
     <br>
-    <button onclick="enviarDatos()">Guardar Resultados del Día</button>
-    <a href="index.html">Ver Tabla General</a>
+    <button style="background-color: #0056b3;" onclick="enviarPartido()">Guardar Resultados del Día</button>
+    <br>
+    <a href="index.html">Ver Tabla de Posiciones</a>
 
     <script>
-        const URL_SCRIPT = "PEGA_AQUÍ_TU_URL_DE_GOOGLE_APPS_SCRIPT";
+        // PEGA AQUÍ LA URL QUE TE DIO GOOGLE APPS SCRIPT
+        const URL_SCRIPT = "TU_URL_DE_APPS_SCRIPT_AQUI";
 
-        // 1. Cargar jugadores al abrir la página
-        fetch(URL_SCRIPT)
-            .then(res => res.json())
-            .then(data => {
-                const div = document.getElementById('listaJugadores');
-                div.innerHTML = "";
-                data.forEach(j => {
-                    div.innerHTML += `
-                        <div style="border-bottom: 1px solid #ccc; padding: 10px;">
-                            <label>
-                                <input type="checkbox" class="jugador-check" data-nombre="${j.nombre}"> 
-                                <strong>${j.nombre}</strong>
-                            </label>
-                            <input type="number" class="goles-input" placeholder="Goles" style="width: 80px; display: inline; margin-left: 20px;">
-                            <select class="puntos-select" style="width: 100px; display: inline;">
-                                <option value="3">Ganó (3)</option>
-                                <option value="1">Empató (1)</option>
-                                <option value="0">Perdió (0)</option>
-                            </select>
-                        </div>
-                    `;
+        // Función para cargar la lista de jugadores apenas abre la página
+        function cargarJugadores() {
+            const div = document.getElementById('listaJugadores');
+            div.innerHTML = "Cargando...";
+            fetch(URL_SCRIPT)
+                .then(res => res.json())
+                .then(data => {
+                    div.innerHTML = "";
+                    data.forEach(j => {
+                        div.innerHTML += `
+                            <div class="jugador-row">
+                                <input type="checkbox" class="jugador-check" data-nombre="${j.nombre}">
+                                <span style="min-width: 150px;"><strong>${j.nombre}</strong></span>
+                                <input type="number" class="goles-input" placeholder="Goles" style="width: 70px;">
+                                <select class="puntos-select" style="width: 110px;">
+                                    <option value="3">Ganó (3)</option>
+                                    <option value="1">Empató (1)</option>
+                                    <option value="0">Perdió (0)</option>
+                                </select>
+                            </div>`;
+                    });
                 });
-            });
+        }
 
-        // 2. Enviar solo los marcados
-        function enviarDatos() {
+        // Función para AGREGAR un jugador nuevo a la base de datos
+        function crearJugador() {
+            const nombre = document.getElementById('nuevoNombre').value;
+            if(!nombre) return alert("Escribí un nombre");
+
+            fetch(URL_SCRIPT, {
+                method: "POST",
+                body: JSON.stringify({ accion: "nuevo", nombre: nombre })
+            }).then(() => {
+                alert(nombre + " agregado!");
+                document.getElementById('nuevoNombre').value = "";
+                cargarJugadores(); // Recarga la lista sola
+            });
+        }
+
+        // Función para ENVIAR los resultados del partido
+        function enviarPartido() {
             const checks = document.querySelectorAll('.jugador-check:checked');
             const resultados = [];
 
             checks.forEach(check => {
-                const padre = check.parentElement.parentElement;
+                const fila = check.closest('.jugador-row');
                 resultados.push({
                     nombre: check.getAttribute('data-nombre'),
-                    goles: padre.querySelector('.goles-input').value || 0,
-                    puntos: padre.querySelector('.puntos-select').value
+                    goles: fila.querySelector('.goles-input').value || 0,
+                    puntos: fila.querySelector('.puntos-select').value
                 });
             });
 
-            if(resultados.length === 0) return alert("Marcá quiénes jugaron");
+            if(resultados.length === 0) return alert("Marcá quiénes jugaron hoy");
 
             fetch(URL_SCRIPT, {
                 method: "POST",
-                body: JSON.stringify(resultados)
+                body: JSON.stringify({ accion: "partido", datos: resultados })
             }).then(() => {
-                alert("¡Datos actualizados en el Excel!");
+                alert("¡Puntos y goles cargados!");
                 location.reload();
             });
         }
+
+        // Iniciar carga
+        cargarJugadores();
     </script>
 </body>
 </html>
