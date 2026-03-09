@@ -4,38 +4,47 @@
     <title>Admin Fútbol</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        body { font-family: sans-serif; padding: 20px; color: #000; background: #fff; line-height: 1.5; }
-        h1, h3 { border-bottom: 2px solid #000; padding-bottom: 10px; }
-        .jugador-item { border-bottom: 1px solid #ccc; padding: 15px 0; }
-        .nombre-jugador { font-size: 18px; font-weight: bold; display: block; margin-bottom: 5px; }
-        button { padding: 8px 12px; cursor: pointer; margin: 2px; }
-        input[type="text"], input[type="number"] { padding: 8px; border: 1px solid #000; }
-        .seccion-flotante { position: sticky; bottom: 0; background: #eee; padding: 15px; border-top: 2px solid #000; margin-top: 20px; }
-        details { margin-top: 5px; color: #555; font-size: 14px; }
+        /* FONDO BLANCO Y TEXTO NEGRO SIEMPRE */
+        body { font-family: sans-serif; padding: 20px; color: #000; background: #fff; }
+        
+        /* FUERA RECUADROS: Solo una línea simple abajo de cada nombre */
+        .jugador-item { border-bottom: 1px solid #ccc; padding: 15px 0; display: block; }
+        
+        .nombre-jugador { font-size: 18px; font-weight: bold; margin-left: 10px; }
+        
+        button { padding: 5px 10px; cursor: pointer; background: #eee; border: 1px solid #000; color: #000; }
+        
+        input[type="text"], input[type="number"] { padding: 5px; border: 1px solid #000; background: #fff; color: #000; }
+        
+        .seccion-botones { background: #fff; padding: 20px 0; border-top: 2px solid #000; margin-top: 20px; }
+        
+        details { margin-top: 10px; font-size: 13px; color: #444; }
+        
+        /* Para que el checkbox se vea grande y fácil de tocar */
+        input[type="checkbox"] { transform: scale(1.5); }
     </style>
 </head>
 <body>
     <h1>Panel de Carga</h1>
 
-    <p><strong>1. Nuevo Jugador:</strong></p>
-    <input type="text" id="nombreInput" placeholder="Nombre completo">
-    <button onclick="agregar()">Registrar</button>
+    <strong>Registrar Nuevo:</strong>
+    <input type="text" id="nombreInput" placeholder="Nombre...">
+    <button onclick="agregar()">Anotar</button>
 
     <hr>
 
     <h3>Lista de Jugadores</h3>
     <div id="listaContenedor">Cargando...</div>
 
-    <div id="seccionCarga" class="seccion-flotante" style="display:none;">
-        <strong>2. ¿Cómo salió el grupo marcado?</strong><br>
-        <button onclick="cargarResultado(3)">GANARON (+3 pts)</button>
-        <button onclick="cargarResultado(1)">EMPATARON (+1 pt)</button>
-        <button onclick="cargarResultado(0)">PERDIERON (0 pts)</button>
+    <div id="seccionCarga" class="seccion-botones" style="display:none;">
+        <strong>¿Cómo salió el grupo marcado hoy?</strong><br><br>
+        <button onclick="cargarResultado(3)">GANARON (+3)</button>
+        <button onclick="cargarResultado(1)">EMPATARON (+1)</button>
+        <button onclick="cargarResultado(0)">PERDIERON (0)</button>
     </div>
 
-    <br>
-    <button onclick="window.location.href='index.html'">VER TABLA DE POSICIONES</button>
-    <button onclick="borrarDB()" style="color:red; border:none; background:none; text-decoration:underline;">Borrar todo el torneo</button>
+    <br><br>
+    <button onclick="window.location.href='index.html'">VER TABLA GENERAL</button>
 
     <script>
         function dibujar() {
@@ -47,18 +56,22 @@
             datos.forEach((j, i) => {
                 cont.innerHTML += `
                 <div class="jugador-item">
-                    <label>
+                    <label style="display: flex; align-items: center;">
                         <input type="checkbox" class="jugador-check" value="${i}">
                         <span class="nombre-jugador">${j.nombre}</span>
                     </label>
-                    <span>Goles: <b>${j.goles}</b> <button onclick="editar(${i},'goles',${j.goles+1})">+</button> <button onclick="editar(${i},'goles',${j.goles-1})">-</button></span>
+                    <div style="margin-top:10px;">
+                        Goles: <b>${j.goles}</b> 
+                        <button onclick="editar(${i},'goles',${j.goles+1})">+</button> 
+                        <button onclick="editar(${i},'goles',${j.goles-1})">-</button>
+                    </div>
                     
                     <details>
-                        <summary>Corregir Pts/PJ/Nombre</summary>
-                        Nombre: <input type="text" value="${j.nombre}" onchange="editar(${i},'nombre',this.value)"><br>
+                        <summary>🔧 Editar datos manual</summary>
+                        Nombre: <input type="text" value="${j.nombre}" onchange="editar(${i},'nombre',this.value)"><br><br>
                         Pts: <input type="number" value="${j.puntos}" style="width:50px" onchange="editar(${i},'puntos',parseInt(this.value))">
                         PJ: <input type="number" value="${j.pj}" style="width:50px" onchange="editar(${i},'pj',parseInt(this.value))">
-                        <button onclick="eliminarJugador(${i})" style="color:red">Eliminar</button>
+                        <button onclick="eliminarJugador(${i})" style="color:red; border-color:red;">Borrar Jugador</button>
                     </details>
                 </div>`;
             });
@@ -82,7 +95,7 @@
         }
 
         function eliminarJugador(idx) {
-            if(confirm("¿Eliminar?")) {
+            if(confirm("¿Eliminar de la lista?")) {
                 let d = JSON.parse(localStorage.getItem('futbolDB'));
                 d.splice(idx, 1);
                 localStorage.setItem('futbolDB', JSON.stringify(d));
@@ -102,7 +115,6 @@
             location.reload();
         }
 
-        function borrarDB() { if(confirm("¿Borrar todo?")) { localStorage.clear(); location.reload(); } }
         dibujar();
     </script>
 </body>
