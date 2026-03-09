@@ -1,81 +1,87 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Admin Fútbol</title>
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Fútbol</title>
     <style>
-        body { font-family: sans-serif; padding: 15px; color: #000; background: #fff; font-size: 14px; }
-        h1 { font-size: 20px; border-bottom: 2px solid #000; }
-        .jugador-item { border-bottom: 1px solid #eee; padding: 10px 0; }
-        .nombre-jugador { font-size: 16px; font-weight: bold; margin-left: 8px; }
-        button { padding: 4px 8px; cursor: pointer; background: #f0f0f0; border: 1px solid #000; }
-        input[type="text"] { padding: 5px; width: 150px; border: 1px solid #000; }
-        .seccion-botones { position: sticky; bottom: 0; background: #fff; padding: 10px 0; border-top: 2px solid #000; }
-        details { margin-top: 5px; font-size: 12px; color: #666; }
-        input[type="checkbox"] { transform: scale(1.2); }
+        body { font-family: sans-serif; background: white; color: black; padding: 15px; font-size: 15px; }
+        .jugador { border-bottom: 1px solid #eee; padding: 12px 0; display: flex; align-items: center; justify-content: space-between; }
+        .info { display: flex; align-items: center; gap: 10px; flex-grow: 1; }
+        .goles-cont { display: flex; align-items: center; gap: 5px; }
+        button { padding: 6px 10px; border: 1px solid #000; background: #f0f0f0; cursor: pointer; }
+        input[type="text"] { padding: 8px; width: 60%; border: 1px solid #000; margin-bottom: 15px; }
+        .footer { position: sticky; bottom: 0; background: white; border-top: 2px solid black; padding: 15px 0; margin-top: 20px; }
+        .btn-res { width: 32%; font-size: 12px; font-weight: bold; }
+        input[type="checkbox"] { transform: scale(1.4); }
     </style>
 </head>
 <body>
-    <h1>Panel de Carga</h1>
-    <strong>Nuevo:</strong>
-    <input type="text" id="nombreInput" placeholder="Nombre...">
-    <button onclick="agregar()">Anotar</button>
-    <hr>
-    <h3>Pasar Lista (A-Z)</h3>
-    <div id="listaContenedor">Cargando...</div>
-    <div id="seccionCarga" class="seccion-botones" style="display:none;">
-        <button onclick="cargarResultado(3)">GANARON (+3)</button>
-        <button onclick="cargarResultado(1)">EMPATARON (+1)</button>
-        <button onclick="cargarResultado(0)">PERDIERON (0)</button>
+    <strong>+ Nuevo Jugador:</strong><br>
+    <input type="text" id="n" placeholder="Nombre...">
+    <button onclick="add()">Anotar</button>
+
+    <div id="lista"></div>
+
+    <div class="footer">
+        <strong>¿Cómo salió el grupo marcado?</strong><br><br>
+        <button class="btn-res" onclick="res(3)" style="background:#d4edda">GANÓ (+3)</button>
+        <button class="btn-res" onclick="res(1)" style="background:#fff3cd">EMPATE (+1)</button>
+        <button class="btn-res" onclick="res(0)" style="background:#f8d7da">PERDIÓ (0)</button>
+        <br><br>
+        <button onclick="window.location.href='index.html'" style="width:100%">VER TABLA POSICIONES</button>
     </div>
+
     <script>
-        function dibujar() {
-            const cont = document.getElementById('listaContenedor');
-            let datos = JSON.parse(localStorage.getItem('futbolDB')) || [];
-            if(datos.length > 0) document.getElementById('seccionCarga').style.display = 'block';
-            
-            // ORDENAR ALFABÉTICAMENTE
-            datos.sort((a, b) => a.nombre.localeCompare(b.nombre));
-            
-            cont.innerHTML = "";
-            datos.forEach((j, i) => {
-                cont.innerHTML += `
-                <div class="jugador-item">
-                    <label style="display: flex; align-items: center;">
-                        <input type="checkbox" class="jugador-check" value="${j.nombre}">
-                        <span class="nombre-jugador">${j.nombre}</span>
-                    </label>
-                    <div style="margin: 5px 0 0 25px;">
-                        Goles: <b>${j.goles}</b> 
-                        <button onclick="editar('${j.nombre}','goles',${j.goles+1})">+</button> 
-                        <button onclick="editar('${j.nombre}','goles',${j.goles-1})">-</button>
+        function dib() {
+            let d = JSON.parse(localStorage.getItem('futbolDB')) || [];
+            d.sort((a, b) => a.nombre.localeCompare(b.nombre));
+            const div = document.getElementById('lista');
+            div.innerHTML = d.length ? "" : "<p>No hay jugadores</p>";
+            d.forEach(j => {
+                div.innerHTML += `
+                <div class="jugador">
+                    <div class="info">
+                        <input type="checkbox" class="ck" value="${j.nombre}">
+                        <span><b>${j.nombre}</b></span>
                     </div>
-                    <details style="margin-left: 25px;">
-                        <summary>Editar manual</summary>
-                        Pts: <input type="number" value="${j.puntos}" style="width:40px" onchange="editar('${j.nombre}','puntos',parseInt(this.value))">
-                        PJ: <input type="number" value="${j.pj}" style="width:40px" onchange="editar('${j.nombre}','pj',parseInt(this.value))">
-                        <button onclick="eliminarJugador('${j.nombre}')" style="color:red; border-color:red; font-size:10px;">Borrar</button>
-                    </details>
+                    <div class="goles-cont">
+                        <span>⚽ ${j.goles}</span>
+                        <button onclick="ed('${j.nombre}','goles',${j.goles+1})">+</button>
+                        <button onclick="ed('${j.nombre}','goles',${j.goles-1})">-</button>
+                    </div>
                 </div>`;
             });
         }
-
-        function agregar() {
-            const n = document.getElementById('nombreInput').value.trim();
-            if(!n) return;
+        function add() {
+            let val = document.getElementById('n').value.trim();
+            if(!val) return;
             let d = JSON.parse(localStorage.getItem('futbolDB')) || [];
-            d.push({ nombre: n, puntos: 0, pj: 0, goles: 0 });
+            d.push({nombre:val, puntos:0, pj:0, goles:0});
             localStorage.setItem('futbolDB', JSON.stringify(d));
-            document.getElementById('nombreInput').value = "";
-            dibujar();
+            document.getElementById('n').value = "";
+            dib();
         }
-
-        function editar(nombre, campo, valor) {
+        function ed(n, c, v) {
             let d = JSON.parse(localStorage.getItem('futbolDB'));
-            let idx = d.findIndex(j => j.nombre === nombre);
-            d[idx][campo] = valor;
+            let i = d.findIndex(x => x.nombre === n);
+            d[i][c] = v;
             localStorage.setItem('futbolDB', JSON.stringify(d));
-            dibujar();
+            dib();
         }
-
-        function eliminarJugador(nombre) {
+        function res(p) {
+            let d = JSON.parse(localStorage.getItem('futbolDB'));
+            let checks = document.querySelectorAll('.ck:checked');
+            if(!checks.length) return alert("Marcá quiénes jugaron");
+            checks.forEach(c => {
+                let i = d.findIndex(x => x.nombre === c.value);
+                d[i].puntos += p; d[i].pj += 1;
+            });
+            localStorage.setItem('futbolDB', JSON.stringify(d));
+            alert("¡Cargado!");
+            location.reload();
+        }
+        dib();
+    </script>
+</body>
+</html>
