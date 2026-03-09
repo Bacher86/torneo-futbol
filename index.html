@@ -3,10 +3,52 @@
 <head>
     <title>Tabla de Posiciones</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css">
+    <style>
+        /* ESTILO LIMPIO: Fondo blanco y texto negro */
+        body { 
+            font-family: sans-serif; 
+            padding: 20px; 
+            background: #fff; 
+            color: #000; 
+            line-height: 1.6;
+        }
+        
+        h1 { 
+            text-align: center; 
+            border-bottom: 2px solid #000; 
+            padding-bottom: 10px;
+        }
+
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin-top: 20px; 
+            font-size: 16px;
+        }
+
+        th, td { 
+            border: 1px solid #ccc; 
+            padding: 12px 8px; 
+            text-align: left; 
+        }
+
+        th { 
+            background: #f2f2f2; 
+            font-weight: bold;
+        }
+
+        /* Resaltar al puntero */
+        tr:first-child td {
+            background: #fff9c4; /* Un toque apenas amarillento para el 1ro */
+        }
+
+        b { color: #000; }
+    </style>
 </head>
 <body>
+
     <h1>🏆 Tabla de Posiciones</h1>
+
     <table>
         <thead>
             <tr>
@@ -16,30 +58,33 @@
                 <th>Goles</th>
             </tr>
         </thead>
-        <tbody id="cuerpoTabla"></tbody>
+        <tbody id="cuerpoTabla">
+            </tbody>
     </table>
-    <br>
-
 
     <script>
+        // Leer la base de datos compartida
         const datos = JSON.parse(localStorage.getItem('futbolDB')) || [];
-        // Ordenar: primero por puntos, luego por goles
-        datos.sort((a, b) => b.puntos - a.puntos || b.goles - a.goles);
+
+        // Ordenar: 1ro Puntos, 2do Goles, 3ro Menos Partidos Jugados
+        datos.sort((a, b) => b.puntos - a.puntos || b.goles - a.goles || a.pj - b.pj);
 
         const tabla = document.getElementById('cuerpoTabla');
-        if(datos.length === 0) {
-            tabla.innerHTML = "<tr><td colspan='4'>No hay jugadores cargados.</td></tr>";
+
+        if (datos.length === 0) {
+            tabla.innerHTML = "<tr><td colspan='4' style='text-align:center;'>No hay datos cargados todavía.</td></tr>";
         } else {
             datos.forEach(j => {
-                tabla.innerHTML += `<tr>
-                    <td>${j.nombre}</td>
-                    <td><b>${j.puntos}</b></td>
-                    <td>${j.pj}</td>
-                    <td>${j.goles}</td>
-                </tr>`;
+                tabla.innerHTML += `
+                    <tr>
+                        <td>${j.nombre}</td>
+                        <td><b>${j.puntos}</b></td>
+                        <td>${j.pj}</td>
+                        <td>${j.goles}</td>
+                    </tr>
+                `;
             });
         }
     </script>
 </body>
 </html>
-
