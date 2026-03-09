@@ -1,42 +1,41 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Admin Torneo - Edición</title>
+    <title>Admin Fútbol</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css">
     <style>
-        .jugador-card { background: #222; border: 1px solid #444; padding: 15px; margin-bottom: 10px; border-radius: 8px; }
-        .fila-superior { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
-        .controles-edicion { display: flex; gap: 5px; flex-wrap: wrap; background: #333; padding: 10px; border-radius: 5px; margin-top: 10px; }
-        input[type="checkbox"] { transform: scale(1.3); }
-        .btn-edit { background: #555; font-size: 12px; padding: 2px 8px; }
-        .marcado { border-color: #00ff00; background: #1a2e1a; }
+        body { font-family: sans-serif; padding: 20px; color: #000; background: #fff; line-height: 1.5; }
+        h1, h3 { border-bottom: 2px solid #000; padding-bottom: 10px; }
+        .jugador-item { border-bottom: 1px solid #ccc; padding: 15px 0; }
+        .nombre-jugador { font-size: 18px; font-weight: bold; display: block; margin-bottom: 5px; }
+        button { padding: 8px 12px; cursor: pointer; margin: 2px; }
+        input[type="text"], input[type="number"] { padding: 8px; border: 1px solid #000; }
+        .seccion-flotante { position: sticky; bottom: 0; background: #eee; padding: 15px; border-top: 2px solid #000; margin-top: 20px; }
+        details { margin-top: 5px; color: #555; font-size: 14px; }
     </style>
 </head>
 <body>
-    <h1>⚙️ Administrar Torneo</h1>
+    <h1>Panel de Carga</h1>
 
-    <details>
-        <summary>➕ Registrar Nuevo Jugador</summary>
-        <input type="text" id="nombreInput" placeholder="Nombre y Apellido">
-        <button onclick="agregar()">Registrar</button>
-    </details>
+    <p><strong>1. Nuevo Jugador:</strong></p>
+    <input type="text" id="nombreInput" placeholder="Nombre completo">
+    <button onclick="agregar()">Registrar</button>
 
     <hr>
 
-    <h3>Paso 1: Seleccioná quiénes jugaron hoy</h3>
+    <h3>Lista de Jugadores</h3>
     <div id="listaContenedor">Cargando...</div>
 
-    <div id="seccionCarga" style="display:none; background: #222; padding: 15px; position: sticky; bottom: 0; border-top: 2px solid #444;">
-        <h4>Paso 2: ¿Cómo salió este grupo?</h4>
-        <button onclick="cargarResultado(3)" style="background: #28a745;">Ganaron (+3 pts)</button>
-        <button onclick="cargarResultado(1)" style="background: #ffc107; color: black;">Empataron (+1 pt)</button>
-        <button onclick="cargarResultado(0)" style="background: #6c757d;">Perdieron (0 pts)</button>
+    <div id="seccionCarga" class="seccion-flotante" style="display:none;">
+        <strong>2. ¿Cómo salió el grupo marcado?</strong><br>
+        <button onclick="cargarResultado(3)">GANARON (+3 pts)</button>
+        <button onclick="cargarResultado(1)">EMPATARON (+1 pt)</button>
+        <button onclick="cargarResultado(0)">PERDIERON (0 pts)</button>
     </div>
 
     <br>
-    <button onclick="window.location.href='index.html'">🏆 Ver Tabla de Posiciones</button>
-    <button onclick="borrarDB()" style="background: #a00;">Borrar Todo</button>
+    <button onclick="window.location.href='index.html'">VER TABLA DE POSICIONES</button>
+    <button onclick="borrarDB()" style="color:red; border:none; background:none; text-decoration:underline;">Borrar todo el torneo</button>
 
     <script>
         function dibujar() {
@@ -47,72 +46,63 @@
             cont.innerHTML = "";
             datos.forEach((j, i) => {
                 cont.innerHTML += `
-                <div class="jugador-card" id="card-${i}">
-                    <div class="fila-superior">
-                        <label style="display:flex; align-items:center; cursor:pointer; gap:10px;">
-                            <input type="checkbox" class="jugador-check" value="${i}" onchange="document.getElementById('card-${i}').classList.toggle('marcado')">
-                            <strong>${j.nombre}</strong>
-                        </label>
-                        <span>⚽ ${j.goles} | Pts: ${j.puntos} | PJ: ${j.pj}</span>
-                    </div>
+                <div class="jugador-item">
+                    <label>
+                        <input type="checkbox" class="jugador-check" value="${i}">
+                        <span class="nombre-jugador">${j.nombre}</span>
+                    </label>
+                    <span>Goles: <b>${j.goles}</b> <button onclick="editar(${i},'goles',${j.goles+1})">+</button> <button onclick="editar(${i},'goles',${j.goles-1})">-</button></span>
                     
                     <details>
-                        <summary class="btn-edit">✏️ Editar datos de ${j.nombre}</summary>
-                        <div class="controles-edicion">
-                            <label>Nombre: <input type="text" value="${j.nombre}" onchange="editar(${i}, 'nombre', this.value)"></label>
-                            <label>Goles: <button onclick="editar(${i}, 'goles', ${j.goles - 1})">-</button> ${j.goles} <button onclick="editar(${i}, 'goles', ${j.goles + 1})">+</button></label>
-                            <label>Puntos: <input type="number" style="width:60px" value="${j.puntos}" onchange="editar(${i}, 'puntos', parseInt(this.value))"></label>
-                            <label>PJ: <input type="number" style="width:60px" value="${j.pj}" onchange="editar(${i}, 'pj', parseInt(this.value))"></label>
-                            <button onclick="eliminarJugador(${i})" style="background:red; padding:2px 5px;">Eliminar Jugador</button>
-                        </div>
+                        <summary>Corregir Pts/PJ/Nombre</summary>
+                        Nombre: <input type="text" value="${j.nombre}" onchange="editar(${i},'nombre',this.value)"><br>
+                        Pts: <input type="number" value="${j.puntos}" style="width:50px" onchange="editar(${i},'puntos',parseInt(this.value))">
+                        PJ: <input type="number" value="${j.pj}" style="width:50px" onchange="editar(${i},'pj',parseInt(this.value))">
+                        <button onclick="eliminarJugador(${i})" style="color:red">Eliminar</button>
                     </details>
                 </div>`;
             });
         }
 
         function agregar() {
-            const nombre = document.getElementById('nombreInput').value;
-            if(!nombre) return;
-            let datos = JSON.parse(localStorage.getItem('futbolDB')) || [];
-            datos.push({ nombre: nombre, puntos: 0, pj: 0, goles: 0 });
-            localStorage.setItem('futbolDB', JSON.stringify(datos));
+            const n = document.getElementById('nombreInput').value;
+            if(!n) return;
+            let d = JSON.parse(localStorage.getItem('futbolDB')) || [];
+            d.push({ nombre: n, puntos: 0, pj: 0, goles: 0 });
+            localStorage.setItem('futbolDB', JSON.stringify(d));
             document.getElementById('nombreInput').value = "";
             dibujar();
         }
 
-        function editar(index, campo, valor) {
-            let datos = JSON.parse(localStorage.getItem('futbolDB'));
-            datos[index][campo] = valor;
-            localStorage.setItem('futbolDB', JSON.stringify(datos));
+        function editar(idx, campo, valor) {
+            let d = JSON.parse(localStorage.getItem('futbolDB'));
+            d[idx][campo] = valor;
+            localStorage.setItem('futbolDB', JSON.stringify(d));
             dibujar();
         }
 
-        function eliminarJugador(index) {
-            if(confirm("¿Seguro querés eliminar a este jugador?")) {
-                let datos = JSON.parse(localStorage.getItem('futbolDB'));
-                datos.splice(index, 1);
-                localStorage.setItem('futbolDB', JSON.stringify(datos));
+        function eliminarJugador(idx) {
+            if(confirm("¿Eliminar?")) {
+                let d = JSON.parse(localStorage.getItem('futbolDB'));
+                d.splice(idx, 1);
+                localStorage.setItem('futbolDB', JSON.stringify(d));
                 dibujar();
             }
         }
 
-        function cargarResultado(puntosAFavor) {
-            let datos = JSON.parse(localStorage.getItem('futbolDB'));
-            const marcados = document.querySelectorAll('.jugador-check:checked');
-            if(marcados.length === 0) return alert("Marcá quiénes jugaron hoy");
-
-            marcados.forEach(check => {
-                const idx = check.value;
-                datos[idx].puntos += puntosAFavor;
-                datos[idx].pj += 1;
+        function cargarResultado(pts) {
+            let d = JSON.parse(localStorage.getItem('futbolDB'));
+            const checks = document.querySelectorAll('.jugador-check:checked');
+            if(checks.length === 0) return alert("Marcá quiénes jugaron");
+            checks.forEach(c => {
+                d[c.value].puntos += pts;
+                d[c.value].pj += 1;
             });
-
-            localStorage.setItem('futbolDB', JSON.stringify(datos));
-            alert("¡Cargado!");
+            localStorage.setItem('futbolDB', JSON.stringify(d));
             location.reload();
         }
 
-        function borrarDB() { if(confirm("¿Borrar todo el torneo?")) { localStorage.clear(); location.reload(); } }
+        function borrarDB() { if(confirm("¿Borrar todo?")) { localStorage.clear(); location.reload(); } }
         dibujar();
     </script>
 </body>
