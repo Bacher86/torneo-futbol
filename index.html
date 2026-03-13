@@ -1,22 +1,22 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tabla Posiciones</title>
     <style>
-        body { font-family: sans-serif; background: white; color: black; padding: 10px; }
+        body { font-family: sans-serif; padding: 10px; background: #fff; color: #000; font-size: 14px; }
         h2 { text-align: center; font-size: 1.2rem; border-bottom: 2px solid #000; padding-bottom: 8px; }
-        table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        table { width: 100%; border-collapse: collapse; }
         th, td { border: 1px solid #ddd; padding: 10px 4px; text-align: center; }
-        th { background: #f4f4f4; font-size: 11px; }
+        th { background: #f4f4f4; font-size: 11px; text-transform: uppercase; }
         td:first-child { text-align: left; font-weight: bold; width: 45%; padding-left: 8px; }
         tr:nth-child(even) { background: #fafafa; }
+        tr:first-child { background: #fffde7; }
         .pts { font-weight: bold; font-size: 15px; }
     </style>
 </head>
 <body>
-    <h2>🏆 POSICIONES</h2>
+    <h2>🏆 POSICIONES ONLINE</h2>
     <table>
         <thead>
             <tr>
@@ -28,19 +28,34 @@
         </thead>
         <tbody id="t"></tbody>
     </table>
+
     <script>
-        const d = JSON.parse(localStorage.getItem('futbolDB')) || [];
-        d.sort((a, b) => b.puntos - a.puntos || b.goles - a.goles || a.pj - b.pj);
-        const cuerpo = document.getElementById('t');
-        if(!d.length) cuerpo.innerHTML = "<tr><td colspan='4'>Sin datos</td></tr>";
-        d.forEach(j => {
-            cuerpo.innerHTML += `<tr>
-                <td>${j.nombre}</td>
-                <td class="pts">${j.puntos}</td>
-                <td>${j.pj}</td>
-                <td>${j.goles}</td>
-            </tr>`;
-        });
+        const DB_URL = "https://torneo-futbol-672b4-default-rtdb.firebaseio.com/jugadores.json";
+        
+        async function cargar() {
+            const r = await fetch(DB_URL);
+            const d = await r.json();
+            if(!d) {
+                document.getElementById('t').innerHTML = "<tr><td colspan='4'>Esperando datos...</td></tr>";
+                return;
+            }
+            
+            const lista = Object.values(d).sort((a, b) => 
+                (b.puntos - a.puntos) || (b.goles - a.goles) || (a.pj - b.pj)
+            );
+
+            const cuerpo = document.getElementById('t');
+            cuerpo.innerHTML = "";
+            lista.forEach(j => {
+                cuerpo.innerHTML += `<tr>
+                    <td>${j.nombre}</td>
+                    <td class="pts">${j.puntos}</td>
+                    <td>${j.pj}</td>
+                    <td>${j.goles}</td>
+                </tr>`;
+            });
+        }
+        cargar();
     </script>
 </body>
 </html>
